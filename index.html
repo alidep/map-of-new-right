@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Map</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Volkhov&family=Work+Sans&display=swap">
+    <style>
+        body {
+            margin: 0;
+            padding: 50px;
+            font-family: Arial, sans-serif;
+            background-color: #FEFFF6; /* Updated background color */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            box-sizing: border-box;
+            position: relative; /* Position relative for the back button */
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 28px;
+            text-align: center;
+            font-family: 'Volkhov', serif;
+        }
+
+        h2 {
+            margin: 10px 0 30px 0;
+            font-size: 16px;
+            text-align: center;
+            color: #5A5A5A;
+            font-family: 'Work Sans', sans-serif;
+        }
+
+        #map {
+            flex: 1;
+            width: 100%;
+            max-width: 1000px;
+            background-color: #FEFFF6; /* Updated background color */
+        }
+
+        .tooltip {
+            position: absolute;
+            background-color: white;
+            color: #333;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            font-family: 'Volkhov', serif;
+            line-height: 1.5;
+            font-size: 12px;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+            max-width: 250px;
+            z-index: 10;
+        }
+
+        .tooltip strong {
+            font-weight: bold;
+            color: #000;
+        }
+
+        .legend {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            font-size: 12px;
+            color: #333;
+            font-family: 'Volkhov', serif;
+        }
+
+        .legend div {
+            display: flex;
+            align-items: center;
+        }
+
+        .legend div:not(:first-child) {
+            margin-left: 15px;
+        }
+
+        .legend span {
+            width: 12px;
+            height: 12px;
+            display: inline-block;
+            margin-right: 6px;
+            border-radius: 50%;
+        }
+
+        .legend span.orange {
+            background-color: orange;
+        }
+
+        .legend span.red {
+            background-color: red;
+        }
+
+        .legend span.yellow {
+            background-color: yellow;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 16px;
+            padding: 10px 20px;
+            background-color: #ccc;
+            color: #333;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <a href="javascript:history.back()" class="back-button">Back</a> <!-- Back button added -->
+    <h1>Tracking the ‘New Right’ Around the World</h1>
+    <h2>Click on a country to see more information</h2>
+    <div id="map"></div>
+    <div class="legend">
+        <div><span class="orange"></span>Recently in power</div>
+        <div><span class="red"></span>In Power</div>
+        <div><span class="yellow"></span>Gaining Popularity</div>
+    </div>
+    <div class="tooltip" id="tooltip"></div>
+
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://d3js.org/topojson.v2.min.js"></script>
+    <script>
+        const width = document.getElementById('map').offsetWidth;
+        const height = width * 0.5; // Maintain a 2:1 aspect ratio
+
+        const svg = d3.select("#map").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        const projection = d3.geoMercator()
+            .scale(width / 6.5)  // Adjust scale for full-width display
+            .translate([width / 2, height / 1.5]);
+
+        const path = d3.geoPath().projection(projection);
+
+        const tooltip = d3.select("#tooltip");
+
+        d3.json("https://raw.githubusercontent.com/holtzy/D3-graph-gallery/master/DATA/world.geojson").then(world => {
+            console.log("World map data loaded:", world);
+            const countries = world.features;
+
+            d3.csv("/mnt/data/data.csv").then(data => {
+                console.log("CSV data loaded:", data);
+
+                const countriesData = data.reduce((acc, d) => {
+                    acc[d.country.toLowerCase()] = d;
+                    return acc;
+                }, {});
+
+                svg.selectAll("path")
+                    .data(countries)
+                    .enter().append("path")
+                    .attr("d", path)
+                    .attr("fill", d => {
+                        const countryName = d.properties.name.toLowerCase();
+                        const status = countriesData[countryName]?.status;
+                        console.log(`Country: ${d.properties.name}, Status: ${status}`);
+
+                        if (status === "In Power") return "red";
+                        else if (status === "Recently in power") return "orange";
+                        else if (status === "Gaining Popularity") return "yellow";
+                        else return "lightgray";
+                    })
+                    .attr("stroke", "#000")
+                    .attr("stroke-width", 0.5)
+                    .on("mouseover", (event, d) => {
+                        const countryName = d.properties.name.toLowerCase();
+                        const countryData = countriesData[countryName];
+                        if (countryData) {
+                            tooltip.transition().duration(200).style("opacity", 1);
+                            tooltip.html(`
+                                <strong>${countryData.country}</strong><br/>
+                                <strong>Leader:</strong> ${countryData.leader}<br/>
+                                <strong>Party:</strong> ${countryData.party}<br/>
+                                <strong>Ideology:</strong> ${countryData.ideology}<br/>
+                            `)
+                            .style("left", (event.pageX + 15) + "px")
+                            .style("top", (event.pageY - 28) + "px");
+                        }
+                    })
+                    .on("mouseout", () => {
+                        tooltip.transition().duration(500).style("opacity", 0);
+                    });
+            }).catch(error => {
+                console.error("Error loading CSV data:", error);
+            });
+        }).catch(error => {
+            console.error("Error loading world map data:", error);
+        });
+    </script>
+</body>
+</html>
