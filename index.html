@@ -156,7 +156,7 @@
             console.log("World map data loaded:", world);
             const countries = world.features;
 
-            d3.csv("/mnt/data/data.csv").then(data => {
+            d3.csv("mnt/data/data.csv").then(data => {
                 console.log("CSV data loaded:", data);
 
                 const countriesData = data.reduce((acc, d) => {
