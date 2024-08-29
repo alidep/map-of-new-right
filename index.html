@@ -22,14 +22,14 @@
 
         h1 {
             margin: 0;
-            font-size: 28px;
+            font-size: 24px;
             text-align: center;
             font-family: 'Volkhov', serif;
         }
 
         h2 {
             margin: 10px 0 30px 0;
-            font-size: 16px;
+            font-size: 14px;
             text-align: center;
             color: #5A5A5A;
             font-family: 'Work Sans', sans-serif;
@@ -92,15 +92,15 @@
         }
 
         .legend span.orange {
-            background-color: orange;
+            background-color: #FF5D18;
         }
 
         .legend span.red {
-            background-color: red;
+            background-color: #B80F0F;
         }
 
         .legend span.yellow {
-            background-color: yellow;
+            background-color: #FCE643;
         }
 
         .back-button {
@@ -108,17 +108,21 @@
             top: 10px;
             left: 10px;
             font-family: 'Work Sans', sans-serif;
+            font-weight: 700;
             font-size: 16px;
             padding: 10px 20px;
-            background-color: #ccc;
+            background-color: #FEFFF6;
             color: #333;
+            border-width: 2px;
+            border-color: #B80F0F;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 30px;
             transition: background-color 0.3s ease;
         }
 
         .back-button:hover {
-            background-color: #bbb;
+            color: #B80F0F;
+            font-weight: 700;
         }
     </style>
 </head>
@@ -173,12 +177,12 @@
                         const status = countriesData[countryName]?.status;
                         console.log(`Country: ${d.properties.name}, Status: ${status}`);
 
-                        if (status === "In Power") return "red";
-                        else if (status === "Recently in power") return "orange";
-                        else if (status === "Gaining Popularity") return "yellow";
-                        else return "lightgray";
+                        if (status === "In Power") return "#B80F0F";
+                        else if (status === "Recently in power") return "#FF5D18";
+                        else if (status === "Gaining Popularity") return "#FCE643";
+                        else return "#F2F3E5";
                     })
-                    .attr("stroke", "#000")
+                    .attr("stroke", "#E6E8D4")
                     .attr("stroke-width", 0.5)
                     .on("mouseover", (event, d) => {
                         const countryName = d.properties.name.toLowerCase();
